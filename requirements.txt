@@ -1,0 +1,4 @@
+selenium==4.21.0
+pytest==8.2.2
+pytest-allure-adaptor
+allure-pytest==2.13.2
