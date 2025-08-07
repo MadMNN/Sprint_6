@@ -1,45 +1,32 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+import time
+from pages.base_page import BasePage
+from locators.locators import MainPageLocators
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 
-class MainPage:
-    def __init__(self, driver):
-        self.driver = driver
-        self.wait = WebDriverWait(driver, 10)
-
-    def open(self, url):
-        self.driver.get(url)
-
+class MainPage(BasePage):
     def accept_cookies(self):
         try:
-            cookie_button = self.wait.until(EC.element_to_be_clickable((
-                By.XPATH, "//button[text()='да все привыкли']"
-            )))
-            cookie_button.click()
-        except:
+            
+            self.click(MainPageLocators.COOKIE_BUTTON)
+        except TimeoutException:
             pass
 
     def scroll_to_faq(self):
-        faq_section = self.driver.find_element(By.CLASS_NAME, 'accordion')
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", faq_section)
+        self.scroll_to(MainPageLocators.FAQ_SECTION)
 
     def click_question(self, question_text):
-        question = self.wait.until(
-            EC.element_to_be_clickable((
-                By.XPATH,
-                f"//div[@class='accordion__button' and text()='{question_text}']"
-            ))
-        )
-        question.click()
+        locator = MainPageLocators.FAQ_QUESTION(question_text)
+        self.scroll_to(locator)
+        element = self.find(locator)
+        self.driver.execute_script("arguments[0].click();", element)
 
-    def get_answer_text(self, question_index):
-        answer = self.wait.until(
-            EC.visibility_of_element_located((
-                By.ID, f"accordion__panel-{question_index}"
-            ))
-        )
-        return answer.text
+    def get_answer_snippet(self, expected_snippet):
+        locator = MainPageLocators.FAQ_ANSWER(expected_snippet)
+        self.wait.until(EC.visibility_of_element_located(locator))
+        return self.get_text(locator)
 
-    def click_order_button(self, index=0):
-        buttons = self.driver.find_elements(By.XPATH, "//button[text()='Заказать']")
+
+    def click_order_button(self, index):
+        buttons = self.driver.find_elements(*MainPageLocators.ORDER_BUTTONS)
         buttons[index].click()
